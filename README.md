@@ -2,15 +2,6 @@
 
 AI-Driven Action Planner & Troubleshooter (ADAPT)
 
-## Requirements
-
-- Python 3.12 and above
-- Docker (optional, for containerized deployment)
-- LangGraph and PydanticAI libraries
-- Netmiko for network device communication
-- HTTPX for async HTTP requests
-- Streamlit for the user interface
-
 ## Overview
 
 ADAPT is an autonomous network troubleshooting system that uses AI-driven agents to diagnose and solve network issues. The system utilizes a multi-agent workflow powered by LangGraph and PydanticAI to provide intelligent, step-by-step troubleshooting of network problems.
@@ -24,6 +15,17 @@ The workflow consists of the following AI agents:
 5. **Result Summary**: Provides a comprehensive troubleshooting report
 
 ## Setup
+
+### 🎯START HERE🎯
+We've provided a recorded walkthrough of the setup process and execution with a live device to help you get started quickly.
+- [Getting Started with ADAPT](https://app.vidcast.io/share/ab857ff1-73ff-4285-923e-7bf266172b93)
+
+### Prerequisites
+
+- Python 3.12 and above
+- Docker (optional, for containerized deployment)
+- OpenAI API key (for LLM access) - [Sign up for OpenAI](https://platform.openai.com/signup)
+- Logfire token (optional, for observability) - [Sign up for Logfire](https://logfire.pydantic.dev)
 
 ### Option 1: Python Native with Virtual Environment
 
@@ -245,3 +247,8 @@ We welcome contributions to ADAPT! Here's how you can contribute:
 
 For questions or suggestions, please open an issue on GitHub.
 
+## Acknowledgements
+
+We'd like to thank the following people for their impact on this project:
+- [Cole Medin](https://www.youtube.com/@ColeMedin) - Cole's Youtube videos were integral to helping us understand LangGraph and PydanticAI and come up with a strategy for tackling this project.  Can't recommend his content enough for anyone looking to get into agentic AI development!
+- [Ralph Keyser](mailto:rakeyser@cisco.com) - Ralph kindly volunteered to be the guinea pig for testing the initial version of ADAPT and provided valuable feedback.
