@@ -1,0 +1,87 @@
+# Network device inventory for ADAPT
+---
+# Device inventory with parameters required for Netmiko drivers
+# Note: Hostnames (e.g. xr_device_hostname) are case sensitive and must match the hostname generated
+# by the Fault Summary agent.
+devices:
+  c8kv-sandbox:
+    hostname: "devnetsandboxiosxec8k.cisco.com"
+    device_type: "cisco_xe"
+    username: "jashoema"  
+    password: "2_-oOXWs9RJ8kx"       
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 60
+      # secret: "secret"  # Optional, if device requires enable mode
+
+  xr_device_hostname:
+    hostname: "1.1.1.1" # Device hostname or IP address (must resolve via DNS if hostname supplied)
+    device_type: "cisco_xr"  # Netmiko driver type
+    username: "cisco"  # Default from .env if not specified
+    password: "cisco"  # Default from .env if not specified
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 60
+      secret: "secret"  # Optional, if device requires enable mode
+
+  xe_device_hostname:
+    hostname: "1.1.1.2"
+    device_type: "cisco_xe"
+    username: "cisco"  
+    password: "cisco"       
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 60
+      secret: "secret"  # Optional, if device requires enable mode
+
+
+  nx_device_hostname:
+    hostname: "1.1.1.3"
+    device_type: "cisco_nxos"
+    username: "cisco"  
+    password: "cisco" 
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 30
+      secret: "secret"  # Optional, if device requires enable mode
+
+
+  # Legacy IOS device type (use cisco_xe for newer IOS XE devices)
+  ios_device_hostname:
+    hostname: "1.1.1.4"
+    device_type: "cisco_ios"
+    username: "cisco"  
+    password: "cisco"  
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 30
+      secret: "secret"  # Optional, if device requires enable mode
+
+  # Junos OS device example
+  junos_device_hostname:
+    hostname: "1.1.1.5"
+    device_type: "juniper_junos"
+    username: "juniper"
+    password: "juniper"
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 30
+      secret: "secret"  # Optional, if device requires enable mode
+
+  # Arista EOS device example
+  arista_device_hostname:
+    hostname: "1.1.1.6"
+    device_type: "arista_eos"
+    username: "arista"
+    password: "arista"
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 30
+      secret: "secret"  # Optional, if device requires enable mode

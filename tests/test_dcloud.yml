@@ -1,0 +1,372 @@
+# BGP Prefix Anomaly
+# This test simulates BGP Prefix Anomaly
+# 
+# Original Input Details:
+# Test Name: BGP Prefix Anomaly
+# Alert Type: BGP Prefix Anomaly
+# Device Type: XRv9K
+# Description: BGP Prefix Anomaly: Current number of prefixes received from BGP neighbor 1.2.3.4 is 84, which is >15% deviation from baseline of 100.
+# Root Cause: An erroneous configuration change to route-policy for this BGP neighbor resulted in route advertisements being dropped unexpectedly.  This can be detected by looking at "show logging" and noticing a configuration change around the time of the fault, and then reviewing the configuration change to see if what was modified could have caused the anomaly.  This can be remediated by executing a rollback of the configuration change using the "rollback config" command for IOS XR.
+
+alert_payload: '{ "sid": "scheduler__admin_dGVzdF9hcHA__RMD5d87776ea558b5c18_at_1748815140_29031", "search_name": "monitor_xr_prefixes_received", "app": "test_app", "owner": "admin", "results_link": "http://splunk-server1:8000/app/test_app/@go?sid=scheduler__admin_dGVzdF9hcHA__RMD5d87776ea558b5c18_at_1748815140_29031", "result": { "timestamp": "2025-06-01 20:44:00", "system": "XR-43", "neighbor_address": "172.20.20.18", "xr_prefixes_received": "84", "IsOutlier": "1.0" } }'
+custom_instructions: |-
+  Objective:
+  Identify and remediate the BGP prefix anomaly where the number of prefixes received from a neighbor dropped unexpectedly.
+
+  Remediation Guide:
+
+  1. Check current BGP prefix count for the affected neighbor to make sure it is still seeing the anomalous count for received prefixes.  Use the command "show bgp neighbor {{ neighbor-ip }}"
+
+  2. Review system logs from the day of the anomaly to see if any configuration changes were made around that time.
+
+  3. If a configuration change was made, check to config commit history to look at the contents of the configuration change
+
+  4. If the contents of the configuration change were related to the policy for the affected neighbor, we should rollback this configuration using the config rollback feature
+
+  5. After the config rollback, we should do a soft clear of the BGP neighbor and then validate that the problem no longer exists.  Use "clear bgp all all {{ neighbor-ip }} soft in" for IOS XR devices in order to do this.
+
+  6. If this doesn't resolve the issue, explore other potential root causes.
+
+
+device_facts:
+  vendor: Cisco
+  os_version: "24.3.1"
+  hostname: xr-43
+  uptime: "1348543.0"
+  serial_number: C1F8D6D7B57
+  fqdn: xr-43
+  model: R-IOSXRV9000-CC
+  interface_list: "['GigabitEthernet0/0/0/0', 'GigabitEthernet0/0/0/1', 'GigabitEthernet0/0/0/2', 'GigabitEthernet0/0/0/3', 'GigabitEthernet0/0/0/4', 'GigabitEthernet0/0/0/5', 'GigabitEthernet0/0/0/6', 'GigabitEthernet0/0/0/7', 'GigabitEthernet0/0/0/8', 'Loopback1', 'Loopback10', 'Loopback2', 'MgmtEth0/RP0/CPU0/0', 'Null0']"
+  reachable: True
+  errors: []
+
+commands:
+  show bgp neighbor 172.20.20.18: |-
+    BGP neighbor is 172.20.20.18
+      Remote AS 3334, local AS 65535, external link
+      Remote router ID 10.200.10.4
+        BGP state = Established, up for 1w3d
+        Previous State: Idle
+        Last Received Message: KeepAlive
+        NSR State: None
+        Last read 00:00:12, Last read before reset 1w3d
+        Hold time is 180, keepalive interval is 60 seconds
+        Configured hold time: 180, keepalive: 60, min acceptable hold time: 3
+        Last write 00:00:46, attempted 19, written 19
+        Second last write 00:01:46, attempted 19, written 19
+        Last write before reset 1w3d, attempted 19, written 19
+        Second last write before reset 1w3d, attempted 19, written 19
+        Last write pulse rcvd  Jun  2 04:22:38.660 last full not set pulse count 44857
+        Last write pulse rcvd before reset 1w3d
+        Last insert into reset queue: May 22 19:51:45.018, removed at May 22 19:51:45.018
+        Socket not armed for io, armed for read, armed for write
+        Last write thread event before reset 1w3d, second last 1w3d
+        Last KA expiry before reset 1w3d, second last 1w3d
+        Last KA error before reset 00:00:00, KA not sent 00:00:00
+        Last KA start before reset 1w3d, second last 1w3d
+        First message received at May 22 19:58:54.949, sent at May 22 19:58:54.949
+        First message before reset received at May 21 22:48:42.436, sent at May 21 22:48:40.430
+        Max Hold Time elapsed was 60490 msec at May 23 01:19:34.594, crossed 40%: 0, 70%: 0
+        Precedence: internet
+        Non-stop routing is enabled
+        Entered Neighbor NSR TCP mode:
+          TCP Initial Sync :              ---                
+          TCP Initial Sync Phase Two :    ---                
+          TCP Initial Sync Done :         ---                
+        Scoped Sync Ilist Elem Flags : 0x00000000 
+        Enforcing first AS is enabled
+        Multi-protocol capability received
+        Neighbor capabilities:            Adv         Rcvd
+          Route refresh:                  Yes         Yes
+          4-byte AS:                      Yes         Yes
+          Address family IPv4 Unicast:    Yes         Yes
+          BFD Strict-Mode:                No          No
+        Message stats:
+          InQ depth: 0, OutQ depth: 0
+                          Last_Sent               Sent  Last_Rcvd               Rcvd
+          Open:           May 22 19:58:54.949        4  May 22 19:58:54.949        3
+          Notification:   May 22 19:51:45.017        2  ---                        0
+          Update:         May 22 19:58:59.958        6  May 22 22:27:34.050      145
+          Keepalive:      Jun  2 04:22:04.550    22467  Jun  2 04:22:38.660    22432
+          Route_Refresh:  ---                        0  ---                        0
+          Total:                                 22479                         22580
+        Minimum time between advertisement runs is 30 secs
+        Inbound message logging enabled, 3 messages buffered
+        Outbound message logging enabled, 3 messages buffered
+        Fast fallover is enabled
+          Neighbor is directly connected
+          Neighbor fast-fallover is not configured
+          Neighbor is external and fast-external-fallover is not disabled
+        Event specific version bump counts:
+          Interval definitions:
+          Interval   Duration (min)  Start time            End time            
+          Live                    5  Jun  2 04:18:24.505   Jun  2 04:22:50.881 
+          1                       5  Jun  2 04:13:24.505   Jun  2 04:18:24.505 
+          2                      15  Jun  2 04:03:24.505   Jun  2 04:18:24.505 
+          3                      30  Jun  2 03:48:24.505   Jun  2 04:18:24.505 
+          Category                             Total        Live  Interval 1  Interval 2  Interval 3
+          Reachable                             3024           0           0           0           0
+          Unreachable                           2826           0           0           0           0
+
+      For Address Family: IPv4 Unicast
+        BGP neighbor version 11483
+        Update group: 0.3 Filter-group: 0.2  No Refresh request being processed
+        Inbound soft reconfiguration allowed (override route-refresh)
+        AF-dependent capabilities:
+          Extended Nexthop Encoding: advertised and received
+        Route refresh request: received 0, sent 0
+        Policy for incoming advertisements is accept_from_AS_3334
+        Policy for outgoing advertisements is PREPEND-AS-OUT
+        84 accepted prefixes, 84 are bestpaths
+        Exact no. of prefixes denied: 16
+        Cumulative no. of prefixes denied: 208
+          No policy: 0, Failed RT match: 0
+          By ORF policy: 0, By policy: 208
+        Number of routes received before ingress policy run: 100
+        Accepted prefixes unmodified: 84
+        Accepted prefixes (modified and unmodified): 84
+        Accepted prefixes (modified and unmodified) high water mark: 115 (May 20 17:24:40.232)
+        Accepted prefixes modified: 0
+        Accepted prefixes modified high water mark: 0 (not set)
+        Denied prefixes: 16
+        Denied prefixes high water mark: 84 (May 21 22:47:21.742)
+        Prefix advertised 1, suppressed 0, withdrawn 0
+        An EoR was received during read-only mode
+        Last ack version 11483, Last synced ack version 0
+        Outstanding version objects: current 0, max 1, refresh 0
+        Additional-paths operation: None
+        Advertise routes with local-label via Unicast SAFI
+        Slow Peer State: Detection-only
+          Detected state: FALSE, Detection threshold: 300
+          Detection Count: 0, Recovery Count: 0
+        Total paths delayed for OOR: 0
+        Paths currently delayed for OOR: 4294967020
+        Event specific version bump counts:
+          Category                             Total        Live  Interval 1  Interval 2  Interval 3
+          Reachable                             3024           0           0           0           0
+          Unreachable                           2826           0           0           0           0
+
+        Connections established 3; dropped 2
+        Local host: 172.20.20.17, Local port: 179, IF Handle: 0x01000048
+        Foreign host: 172.20.20.18, Foreign port: 51821
+        Last reset 1w3d, due to Admin. shutdown (CEASE notification sent - administrative shutdown)
+        Time since last notification sent to neighbor: 1w3d
+        Error Code: administrative shutdown
+        Notification data sent:
+          None
+        Address-Family Ref Count:
+              IPv4 Unicast: 100
+  show logging last 100: |-
+    Syslog logging: enabled (0 messages dropped, 0 flushes, 0 overruns)
+        Console logging: Disabled
+        Monitor logging: level debugging, 144 messages logged
+        Trap logging: level informational, 0 messages logged
+        Buffer logging: level debugging, 2815 messages logged
+
+    Log Buffer (2097152 bytes):
+
+    RP/0/RP0/CPU0:Jun  1 18:58:19.532 UTC: config_rollback[68194]: %MGBL-CONFIG-6-DB_COMMIT : Configuration committed by user 'cisco'. Use 'show configuration commit changes 1000000070' to view the changes. 
+    RP/0/RP0/CPU0:Jun  1 18:58:20.179 UTC: SSHD_[68159]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.41' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 19:02:32.240 UTC: SSHD_[68635]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.41' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 19:02:33.773 UTC: config[68674]: %MGBL-CONFIG-6-DB_COMMIT : Configuration committed by user 'cisco'. Use 'show configuration commit changes 1000000071' to view the changes. 
+    RP/0/RP0/CPU0:Jun  1 19:02:33.932 UTC: config[68674]: %MGBL-SYS-5-CONFIG_I : Configured from console by cisco on vty2 (198.18.128.41) 
+    RP/0/RP0/CPU0:Jun  1 19:02:33.997 UTC: SSHD_[68635]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.41' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 19:13:43.017 UTC: SSHD_[69504]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.41' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 19:13:44.554 UTC: config[69543]: %MGBL-CONFIG-6-DB_COMMIT : Configuration committed by user 'cisco'. Use 'show configuration commit changes 1000000072' to view the changes. 
+    RP/0/RP0/CPU0:Jun  1 19:13:44.710 UTC: config[69543]: %MGBL-SYS-5-CONFIG_I : Configured from console by cisco on vty2 (198.18.128.41) 
+    RP/0/RP0/CPU0:Jun  1 19:13:44.781 UTC: SSHD_[69504]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.41' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 19:27:20.257 UTC: SSHD_[69377]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 897 , session_rekey_count = 10 
+    RP/0/RP0/CPU0:Jun  1 19:30:41.594 UTC: SSHD_[66072]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 899 , session_rekey_count = 10 
+    RP/0/RP0/CPU0:Jun  1 19:31:39.424 UTC: SSHD_[66234]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 900 , session_rekey_count = 10 
+    RP/0/RP0/CPU0:Jun  1 19:39:30.363 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: Start of request 95 from client 198.18.128.50:55804 
+    RP/0/RP0/CPU0:Jun  1 19:39:30.364 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: Start of request 96 from client 198.18.128.50:55812 
+    RP/0/RP0/CPU0:Jun  1 19:39:30.366 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: Start of request 93 from client 198.18.128.50:55826 
+    RP/0/RP0/CPU0:Jun  1 19:39:30.371 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: Start of request 94 from client 198.18.128.50:55814 
+    RP/0/RP0/CPU0:Jun  1 19:40:24.512 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: End of request 94 from client 198.18.128.50:55814 
+    RP/0/RP0/CPU0:Jun  1 19:40:24.514 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: End of request 96 from client 198.18.128.50:55812 
+    RP/0/RP0/CPU0:Jun  1 19:40:24.514 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: End of request 95 from client 198.18.128.50:55804 
+    RP/0/RP0/CPU0:Jun  1 19:40:24.514 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: End of request 93 from client 198.18.128.50:55826 
+    RP/0/RP0/CPU0:Jun  1 19:40:33.807 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: Start of request 97 from client 198.18.128.50:52346 
+    RP/0/RP0/CPU0:Jun  1 19:40:33.812 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: Start of request 99 from client 198.18.128.50:52374 
+    RP/0/RP0/CPU0:Jun  1 19:40:33.816 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: Start of request 98 from client 198.18.128.50:52362 
+    RP/0/RP0/CPU0:Jun  1 19:40:33.827 UTC: emsd[1128]: %MGBL-EMS-6-TELEMETRY_SUBSCRIBE : gNMI: Start of request 100 from client 198.18.128.50:52372 
+    RP/0/RP0/CPU0:Jun  1 19:40:45.914 UTC: SSHD_[67278]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.51' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 19:40:46.533 UTC: SSHD_[67278]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.51' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 19:44:18.322 UTC: SSHD_[67303]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 901 , session_rekey_count = 10 
+    RP/0/RP0/CPU0:Jun  1 19:56:45.191 UTC: SSHD_[68529]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.51' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 19:56:45.817 UTC: SSHD_[68529]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.51' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 20:11:45.335 UTC: SSHD_[69543]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.51' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 20:11:45.955 UTC: SSHD_[69543]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.51' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 20:27:16.061 UTC: SSHD_[67303]: %SECURITY-SSHD-6-INFO_GENERAL : Client closes socket connection 
+    RP/0/RP0/CPU0:Jun  1 20:27:16.061 UTC: SSHD_[66072]: %SECURITY-SSHD-6-INFO_GENERAL : Client closes socket connection 
+    RP/0/RP0/CPU0:Jun  1 20:27:16.063 UTC: SSHD_[69377]: %SECURITY-SSHD-6-INFO_GENERAL : Client closes socket connection 
+    RP/0/RP0/CPU0:Jun  1 20:27:45.673 UTC: SSHD_[66589]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.51' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 20:27:46.496 UTC: SSHD_[66589]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.51' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 20:31:39.642 UTC: SSHD_[66234]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 900 , session_rekey_count = 11 
+    RP/0/RP0/CPU0:Jun  1 20:36:11.735 UTC: SSHD_[67260]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.50' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 20:36:41.658 UTC: SSHD_[67260]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.50' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 20:38:33.472 UTC: SSHD_[67427]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.41' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 20:38:35.116 UTC: config[67466]: %MGBL-CONFIG-6-DB_COMMIT : Configuration committed by user 'cisco'. Use 'show configuration commit changes 1000000073' to view the changes. 
+    RP/0/RP0/CPU0:Jun  1 20:38:35.280 UTC: config[67466]: %MGBL-SYS-5-CONFIG_I : Configured from console by cisco on vty2 (198.18.128.41) 
+    RP/0/RP0/CPU0:Jun  1 20:38:35.350 UTC: SSHD_[67427]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.41' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 20:43:08.374 UTC: SSHD_[67778]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.41' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 20:43:09.918 UTC: config[67817]: %MGBL-CONFIG-6-DB_COMMIT : Configuration committed by user 'cisco'. Use 'show configuration commit changes 1000000074' to view the changes. 
+    RP/0/RP0/CPU0:Jun  1 20:43:10.097 UTC: config[67817]: %MGBL-SYS-5-CONFIG_I : Configured from console by cisco on vty2 (198.18.128.41) 
+    RP/0/RP0/CPU0:Jun  1 20:43:10.166 UTC: SSHD_[67778]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.41' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 20:43:44.851 UTC: SSHD_[67914]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.51' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 20:43:45.446 UTC: SSHD_[67914]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.51' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 20:44:10.559 UTC: SSHD_[68016]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.50' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 20:44:36.486 UTC: SSHD_[68016]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.50' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 20:58:45.096 UTC: SSHD_[69118]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.51' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 20:58:45.697 UTC: SSHD_[69118]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.51' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 21:02:32.009 UTC: SSHD_[69438]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.50' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 21:04:06.350 UTC: SSHD_[69438]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.50' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 21:09:45.470 UTC: SSHD_[65850]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.51' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 21:09:46.104 UTC: SSHD_[65850]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.51' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  1 21:13:23.868 UTC: SSHD_[66162]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.50' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  1 21:31:39.964 UTC: SSHD_[66234]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 900 , session_rekey_count = 12 
+    RP/0/RP0/CPU0:Jun  1 21:36:11.626 UTC: SSHD_[67260]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 910 , session_rekey_count = 1 
+    RP/0/RP0/CPU0:Jun  1 21:44:10.452 UTC: SSHD_[68016]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 914 , session_rekey_count = 1 
+    RP/0/RP0/CPU0:Jun  1 22:02:31.899 UTC: SSHD_[69438]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 916 , session_rekey_count = 1 
+    RP/0/RP0/CPU0:Jun  1 22:13:23.762 UTC: SSHD_[66162]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 918 , session_rekey_count = 1 
+    RP/0/RP0/CPU0:Jun  1 22:31:40.215 UTC: SSHD_[66234]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 900 , session_rekey_count = 13 
+    RP/0/RP0/CPU0:Jun  1 22:36:11.842 UTC: SSHD_[67260]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 910 , session_rekey_count = 2 
+    RP/0/RP0/CPU0:Jun  1 22:44:10.670 UTC: SSHD_[68016]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 914 , session_rekey_count = 2 
+    RP/0/RP0/CPU0:Jun  1 23:02:31.913 UTC: SSHD_[69438]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 916 , session_rekey_count = 2 
+    RP/0/RP0/CPU0:Jun  1 23:13:23.978 UTC: SSHD_[66162]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 918 , session_rekey_count = 2 
+    RP/0/RP0/CPU0:Jun  1 23:31:40.416 UTC: SSHD_[66234]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 900 , session_rekey_count = 14 
+    RP/0/RP0/CPU0:Jun  1 23:36:12.060 UTC: SSHD_[67260]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 910 , session_rekey_count = 3 
+    RP/0/RP0/CPU0:Jun  1 23:44:10.886 UTC: SSHD_[68016]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 914 , session_rekey_count = 3 
+    RP/0/RP0/CPU0:Jun  2 00:02:32.130 UTC: SSHD_[69438]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 916 , session_rekey_count = 3 
+    RP/0/RP0/CPU0:Jun  2 00:13:23.994 UTC: SSHD_[66162]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 918 , session_rekey_count = 3 
+    RP/0/RP0/CPU0:Jun  2 00:31:40.613 UTC: SSHD_[66234]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 900 , session_rekey_count = 15 
+    RP/0/RP0/CPU0:Jun  2 00:36:12.276 UTC: SSHD_[67260]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 910 , session_rekey_count = 4 
+    RP/0/RP0/CPU0:Jun  2 00:44:11.103 UTC: SSHD_[68016]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 914 , session_rekey_count = 4 
+    RP/0/RP0/CPU0:Jun  2 01:02:32.347 UTC: SSHD_[69438]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 916 , session_rekey_count = 4 
+    RP/0/RP0/CPU0:Jun  2 01:13:24.010 UTC: SSHD_[66162]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 918 , session_rekey_count = 4 
+    RP/0/RP0/CPU0:Jun  2 01:31:40.814 UTC: SSHD_[66234]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 900 , session_rekey_count = 16 
+    RP/0/RP0/CPU0:Jun  2 01:36:12.496 UTC: SSHD_[67260]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 910 , session_rekey_count = 5 
+    RP/0/RP0/CPU0:Jun  2 01:44:11.326 UTC: SSHD_[68016]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 914 , session_rekey_count = 5 
+    RP/0/RP0/CPU0:Jun  2 02:02:32.566 UTC: SSHD_[69438]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 916 , session_rekey_count = 5 
+    RP/0/RP0/CPU0:Jun  2 02:13:24.229 UTC: SSHD_[66162]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 918 , session_rekey_count = 5 
+    RP/0/RP0/CPU0:Jun  2 02:31:41.008 UTC: SSHD_[66234]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 900 , session_rekey_count = 17 
+    RP/0/RP0/CPU0:Jun  2 02:36:12.512 UTC: SSHD_[67260]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 910 , session_rekey_count = 6 
+    RP/0/RP0/CPU0:Jun  2 02:44:11.344 UTC: SSHD_[68016]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 914 , session_rekey_count = 6 
+    RP/0/RP0/CPU0:Jun  2 03:02:32.783 UTC: SSHD_[69438]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 916 , session_rekey_count = 6 
+    RP/0/RP0/CPU0:Jun  2 03:13:24.446 UTC: SSHD_[66162]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 918 , session_rekey_count = 6 
+    RP/0/RP0/CPU0:Jun  2 03:31:41.206 UTC: SSHD_[66234]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 900 , session_rekey_count = 18 
+    RP/0/RP0/CPU0:Jun  2 03:36:12.528 UTC: SSHD_[67260]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 910 , session_rekey_count = 7 
+    RP/0/RP0/CPU0:Jun  2 03:44:11.362 UTC: SSHD_[68016]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 914 , session_rekey_count = 7 
+    RP/0/RP0/CPU0:Jun  2 04:02:33.004 UTC: SSHD_[69438]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 916 , session_rekey_count = 7 
+    RP/0/RP0/CPU0:Jun  2 04:12:10.375 UTC: SSHD_[66162]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.50' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  2 04:12:10.656 UTC: SSHD_[65715]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.50' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  2 04:13:23.215 UTC: SSHD_[65715]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.50' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  2 04:13:24.662 UTC: SSHD_[66162]: %SECURITY-SSHD-6-INFO_REKEY : Server initiated time rekey for session 918 , session_rekey_count = 7 
+    RP/0/RP0/CPU0:Jun  2 04:18:29.319 UTC: SSHD_[66290]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.50' on 'vty2'(cipher 'aes128-ctr', mac 'hmac-sha2-256') 
+    RP/0/RP0/CPU0:Jun  2 04:22:16.613 UTC: SSHD_[66290]: %SECURITY-SSHD-6-INFO_USER_LOGOUT : User 'cisco' from '198.18.128.50' logged out on 'vty2' 
+    RP/0/RP0/CPU0:Jun  2 04:22:16.721 UTC: SSHD_[66574]: %SECURITY-SSHD-6-INFO_SUCCESS : Successfully authenticated user 'cisco' from '198.18.128.50' on 'vty3'(cipher 'aes128-ctr', mac 'hmac-sha2-256')
+  show configuration commit list: |-
+    SNo. Label/ID              User      Line                Client      Time Stamp
+    ~~~~ ~~~~~~~~              ~~~~      ~~~~                ~~~~~~      ~~~~~~~~~~
+    1    1000000074            cisco     vty2:node0_RP0_CPU  CLI         Sun Jun  1 20:43:09 2025
+    2    1000000073            cisco     vty2:node0_RP0_CPU  CLI         Sun Jun  1 20:38:34 2025
+    3    1000000072            cisco     vty2:node0_RP0_CPU  CLI         Sun Jun  1 19:13:44 2025
+    4    1000000071            cisco     vty2:node0_RP0_CPU  CLI         Sun Jun  1 19:02:33 2025
+    5    1000000070            cisco     vty2:node0_RP0_CPU  Rollback    Sun Jun  1 18:58:18 2025
+    6    1000000069            cisco     con0_RP0_CPU0       CLI         Sun Jun  1 14:45:10 2025
+    7    1000000068            cisco     vty0:node0_RP0_CPU  CLI         Sun Jun  1 09:30:09 2025
+    8    1000000067            cisco     vty1:node0_RP0_CPU  CLI         Fri May 23 02:40:28 2025
+    9    1000000066            cisco     vty1:node0_RP0_CPU  Rollback    Fri May 23 02:37:47 2025
+    10   1000000065            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 23:24:13 2025
+    11   1000000064            cisco     vty1:node0_RP0_CPU  Rollback    Thu May 22 23:23:00 2025
+    12   1000000063            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 23:13:55 2025
+    13   1000000062            cisco     vty1:node0_RP0_CPU  Rollback    Thu May 22 23:11:17 2025
+    14   1000000061            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 23:07:04 2025
+    15   1000000060            cisco     vty1:node0_RP0_CPU  Rollback    Thu May 22 23:05:05 2025
+    16   1000000059            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 22:45:08 2025
+    17   1000000058            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 22:04:26 2025
+    18   1000000057            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 22:03:52 2025
+    19   1000000056            cisco     vty1:node0_RP0_CPU  Rollback    Thu May 22 22:01:23 2025
+    20   1000000055            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 22:00:24 2025
+    21   1000000054            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 21:53:32 2025
+    22   1000000053            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 21:42:15 2025
+    23   1000000052            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 21:36:46 2025
+    24   1000000051            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 21:31:32 2025
+    25   1000000050            cisco     vty0:node0_RP0_CPU  CLI         Thu May 22 21:30:20 2025
+    26   1000000049            cisco     vty0:node0_RP0_CPU  Rollback    Thu May 22 21:28:30 2025
+    27   1000000048            cisco     vty0:node0_RP0_CPU  Rollback    Thu May 22 21:23:30 2025
+    28   1000000047            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 21:12:43 2025
+    29   1000000046            cisco     vty1:node0_RP0_CPU  CLI         Thu May 22 21:12:30 2025
+    30   1000000045            cisco     vty0:node0_RP0_CPU  Rollback    Thu May 22 20:02:32 2025
+    31   1000000044            cisco     vty0:node0_RP0_CPU  CLI         Thu May 22 20:01:37 2025
+    32   1000000043            cisco     vty0:node0_RP0_CPU  CLI         Thu May 22 19:58:32 2025
+    33   1000000042            cisco     vty0:node0_RP0_CPU  CLI         Thu May 22 19:57:57 2025
+    34   1000000041            cisco     vty0:node0_RP0_CPU  CLI         Thu May 22 19:51:44 2025
+    35   1000000040            cisco     vty0:node0_RP0_CPU  CLI         Thu May 22 19:48:21 2025
+    36   1000000039            cisco     vty0:node0_RP0_CPU  CLI         Thu May 22 19:28:04 2025
+    37   1000000038            cisco     vty0:node0_RP0_CPU  CLI         Wed May 21 22:47:19 2025
+    38   1000000037            cisco     con0_RP0_CPU0       CLI         Mon May 19 22:43:07 2025
+    39   1000000036            cisco     vty0:node0_RP0_CPU  CLI         Mon May 19 20:41:45 2025
+    40   1000000035            cisco     vty0:node0_RP0_CPU  CLI         Mon May 19 20:41:22 2025
+    41   1000000034            cisco     con0_RP0_CPU0       CLI         Mon May 12 19:32:25 2025
+    42   1000000033            cisco     vty1:node0_RP0_CPU  CLI         Sun May 11 21:10:54 2025
+    43   1000000032            cisco     vty2:node0_RP0_CPU  CLI         Sun May 11 19:33:10 2025
+    44   1000000031            cisco     vty2:node0_RP0_CPU  CLI         Sun May 11 19:15:08 2025
+    45   1000000030            cisco     vty1:node0_RP0_CPU  CLI         Sun May 11 19:13:58 2025
+    46   1000000029            cisco     con0_RP0_CPU0       CLI         Sat May 10 21:19:40 2025
+    47   1000000028            cisco     con0_RP0_CPU0       CLI         Sat May 10 21:09:57 2025
+    48   1000000027            cisco     con0_RP0_CPU0       CLI         Sat May 10 20:40:45 2025
+    49   1000000026            cisco     vty0:node0_RP0_CPU  CLI         Sat May 10 14:30:00 2025
+    50   1000000025            cisco     vty0:node0_RP0_CPU  CLI         Sat May 10 14:28:43 2025
+    51   1000000024            cisco     vty0:node0_RP0_CPU  CLI         Sat May 10 14:25:50 2025
+    52   1000000023            cisco     vty1:node0_RP0_CPU  CLI         Sat May 10 07:26:04 2025
+    53   1000000022            cisco     vty1:node0_RP0_CPU  CLI         Sat May 10 07:13:14 2025
+    54   1000000021            cisco     vty1:node0_RP0_CPU  CLI         Sat May 10 01:05:44 2025
+    55   1000000020            cisco     vty1:node0_RP0_CPU  CLI         Sat May 10 01:03:24 2025
+    56   1000000019            cisco     vty1:node0_RP0_CPU  CLI         Sat May 10 00:50:43 2025
+    57   1000000018            cisco     vty1:node0_RP0_CPU  CLI         Sat May 10 00:34:40 2025
+    58   1000000017            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 23:30:38 2025
+    59   1000000016            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 23:24:55 2025
+    60   1000000015            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 23:22:37 2025
+    61   1000000014            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 22:50:46 2025
+    62   1000000013            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 20:17:14 2025
+    63   1000000012            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 20:05:48 2025
+    64   1000000011            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 20:05:26 2025
+    65   1000000010            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 19:59:12 2025
+    66   1000000009            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 19:44:38 2025
+    67   1000000008            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 19:33:24 2025
+    68   1000000007            cisco     vty1:node0_RP0_CPU  CLI         Fri May  9 19:31:39 2025
+    69   1000000006            cisco     con0_RP0_CPU0       CLI         Fri May  9 14:36:40 2025
+    70   1000000005            cisco     vty0:node0_RP0_CPU  CLI         Fri May  9 14:30:02 2025
+    71   1000000004            cisco     vty0:node0_RP0_CPU  CLI         Fri May  9 14:15:03 2025
+    72   1000000003            ZTP       ZTP                 CLI         Fri May  9 06:36:58 2025
+    73   1000000002            ZTP       ZTP                 CLI         Fri May  9 06:36:53 2025
+    74   1000000001            CVAC      UNKNOWN             CLI         Fri May  9 06:36:46 2025
+  show configuration commit changes 1000000074: |-
+    !! Building configuration...
+    !! IOS XR Configuration 24.3.1
+    route-policy accept_from_AS_3334
+      if destination in ACCEPT_FROM_AS_3334_v2.0 then
+        pass
+      endif
+    end-policy
+    !
+    end
+  
+  # show configuration commit changes 5: |-
+  #   --- Begin diff for commit 5 ---
+  #   @@ route-policy RP-ANOMALY
+  #   -  if destination in prefix-set PS-BGP
+  #   +  if destination in prefix-set PS-NEW
+  #   --- End diff for commit 5 ---
+  # show route-policy RP-ANOMALY: |-
+  #   route-policy RP-ANOMALY, permit 1 term(s)
+  #     term 10, permit, match prefix-set PS-NEW
+  #       Related prefix-sets:
+  #         PS-NEW:  (size = 0, null entries)
+  #     default drop
+  #   end-policy
+  # rollback config 4: |-
+  #   Rolling back to configuration commit 4...
+  #   Commit 4 restored successfully.
+  #   Current configuration now matches commit 4 state.

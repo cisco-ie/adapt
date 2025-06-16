@@ -1,0 +1,91 @@
+# BGP Prefix Anomaly
+# This test simulates BGP Prefix Anomaly on a NCS 5508
+# Generated on 2025-05-22 22:13:31
+# 
+# Original Input Details:
+# Test Name: BGP Prefix Anomaly
+# Alert Type: BGP Prefix Anomaly
+# Device Type: NCS 5508
+# Description: BGP Prefix Anomaly: Current number of prefixes received from BGP neighbor 1.2.3.4 is 84, which is >15% deviation from baseline of 100.
+# Root Cause: An erroneous configuration change to route-policy for this BGP neighbor resulted in route advertisements being dropped unexpectedly.  This can be detected by looking at "show logging" and noticing a configuration change around the time of the fault, and then reviewing the configuration change to see if what was modified could have caused the anomaly.  This can be remediated by executing a rollback of the configuration change using the "rollback config" command for IOS XR.
+
+alert_payload: '{"alert_id":"BGP-1001","device":"NCS5508-1","timestamp":"2024-05-15T10:20:30Z","severity":"high","message":"BGP
+  prefix anomaly: prefix count from neighbor 1.2.3.4 deviates >15% from baseline","raw_event":"%BGP-4-PREFIX-ANOMALY:
+  Received 84 prefixes from neighbor 1.2.3.4 deviates >15% from baseline 100"}'
+custom_instructions: "Objective: Identify and remediate the BGP prefix anomaly where\
+  \ the number of prefixes received from neighbor 1.2.3.4 dropped unexpectedly.\n\n\
+  General Instructions:\n- Execute the commands on the Cisco NCS 5508 (IOS XR) device\
+  \ with sufficient privileges.\n- Focus on BGP neighbor statistics and recent configuration\
+  \ commits.\n- Assume the baseline prefix count is 100 for this neighbor.\n\nRemediation\
+  \ Guide:\n\n1. Check current BGP prefix count for all neighbors:\n   Command: `show\
+  \ bgp summary`\n   What to look for: The \"State/PfxRcd\" column for neighbor 1.2.3.4.\
+  \ If it shows 84 (deviation >15%), proceed.\n\n2. Confirm detailed prefix count\
+  \ for neighbor 1.2.3.4:\n   Command: `show bgp neighbors 1.2.3.4 detail`\n   What\
+  \ to look for: The \"Received prefixes\" field should match the anomalous count.\
+  \ If confirmed, move to log review.\n\n3. Review system logs around the anomaly\
+  \ time:\n   Command: `show logging`\n   What to look for: `%SYS-5-CONFIG_I` entries\
+  \ indicating a configuration commit and `%BGP-4-PREFIX-ANOMALY` alert around 10:15\u2013\
+  10:20 UTC. Note the commit number.\n\n4. List recent configuration commits:\n  \
+  \ Command: `show configuration commit list`\n   What to look for: Identify the commit\
+  \ number (e.g., 5) that corresponds to the time you saw in the logs and mentions\
+  \ route-policy changes.\n\n5. Inspect the specific changes in that commit:\n   Command:\
+  \ `show configuration commit changes 5`\n   What to look for: Modifications to the\
+  \ route-policy `RP-ANOMALY`, such as removal or replacement of the original prefix-set\
+  \ match that could filter out routes.\n\n6. Examine the current route-policy:\n\
+  \   Command: `show route-policy RP-ANOMALY`\n   What to look for: The policy referencing\
+  \ a new or empty prefix-set (e.g., `PS-NEW`) instead of the original set, causing\
+  \ most prefixes to be dropped.\n\n7. Roll back the faulty commit:\n   Command: `rollback\
+  \ config 4`\n   What to do next: This returns the route-policy to its previous,\
+  \ correct state (commit 4).\n\n8. Verify that the prefix count is restored:\n  \
+  \ Command: `show bgp neighbors 1.2.3.4 detail`\n   What to look for: The \"Received prefixes\"\
+  \ should now be back to the baseline of 100."
+expected_rca: |-
+  An incorrect configuration commit (#5) modified the route-policy `RP-ANOMALY` to reference an empty or wrong prefix-set (`PS-NEW`), causing the policy to filter out many BGP routes from neighbor 1.2.3.4. As a result, the system saw only 84 prefixes (a >15% drop from the baseline of 100). Evidence:
+  - `show logging` shows a `%SYS-5-CONFIG_I` entry at 10:15 UTC for commit 5 and the subsequent `%BGP-4-PREFIX-ANOMALY` alert.
+  - `show configuration commit changes 5` displays the diff where the original prefix-set match was removed or replaced.
+  - `show route-policy RP-ANOMALY` confirms the policy now matches an empty prefix-set, dropping most routes.
+  Rolling back to commit 4 restores the original route-policy definition and returns the prefix count to 100.
+commands:
+  show bgp summary: |-
+    Wed May 15 10:20:30.123 UTC
+    BGP router identifier 192.0.2.1, local AS number 65001
+    BGP table version is 200, main routing table version 200
+
+    Neighbor        V    AS    MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down State/PfxRcd
+    1.2.3.4         4 65002    12345    12344       200    0    0 01:05:00          84
+  show bgp neighbors 1.2.3.4 detail: |-
+    Wed May 15 10:20:30.123 UTC
+    BGP neighbor is 1.2.3.4, remote AS 65002, external link
+      BGP version 4, remote router ID 192.0.2.2
+      Session state: Established
+      Last read 00:00:05, hold time is 180, keepalive interval is 60 seconds
+      Received prefixes: 84
+      Sent prefixes: 100
+      Prefix activity: 20 imported, 0 suppressed
+  show logging: |-
+    May 15 10:14:58 NCS5508-1 RP/0/CPU0: %SYS-5-RELOAD: Reload requested by admin
+    May 15 10:15:00 NCS5508-1 RP/0/CPU0: %SYS-5-CONFIG_I: Configured from console by admin
+    May 15 10:20:30 NCS5508-1 RPD/0/CPU1: %BGP-4-PREFIX-ANOMALY: Received 84 prefixes from neighbor 1.2.3.4 deviates >15% from baseline 100
+    May 15 10:21:00 NCS5508-1 RPD/0/CPU1: %BGP-6-ADJCHANGE: neighbor 1.2.3.4 Up
+  show configuration commit list: |-
+    commit number  commit-id        admin    date                  comment
+      3           c84f2d34        netops   May 15 09:00:00 UTC   Initial BGP policy
+      4           d95a1bff        netops   May 15 09:30:00 UTC   Update prefix-set PS-BGP
+    * 5           a12b3c45        admin    May 15 10:15:00 UTC   Modify route-policy RP-ANOMALY
+  show configuration commit changes 5: |-
+    --- Begin diff for commit 5 ---
+    @@ route-policy RP-ANOMALY
+    -  if destination in prefix-set PS-BGP
+    +  if destination in prefix-set PS-NEW
+    --- End diff for commit 5 ---
+  show route-policy RP-ANOMALY: |-
+    route-policy RP-ANOMALY, permit 1 term(s)
+      term 10, permit, match prefix-set PS-NEW
+        Related prefix-sets:
+          PS-NEW:  (size = 0, null entries)
+      default drop
+    end-policy
+  rollback config 4: |-
+    Rolling back to configuration commit 4...
+    Commit 4 restored successfully.
+    Current configuration now matches commit 4 state.

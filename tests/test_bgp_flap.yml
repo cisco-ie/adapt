@@ -1,0 +1,111 @@
+# BGP flapping test scenario
+# This test simulates a BGP neighbor that is constantly flapping
+# It provides both the alert payload and predefined command outputs
+
+alert_payload: |
+  {
+    "alert_id": "BGP-1234",
+    "device": "router1",
+    "timestamp": "2025-05-14T10:00:00",
+    "severity": "high",
+    "message": "BGP neighbor relationship with 192.168.1.1 is flapping",
+    "details": "BGP neighbor 192.168.1.1 (AS 65001) is experiencing rapid state changes. The session has gone down 5 times in the past 30 minutes."
+  }
+
+custom_instructions: |
+  General instructions:
+    - Always talk like a pirate
+  Troubleshooting instructions:
+    1. Isolate the device by changing BGP metrics
+    2. Check the BGP neighbor state and logs to see if the neighbor is flapping.
+    3. Check the interface status and logs to see if there are any errors or issues.
+    4. Stop troubleshooting and escalate to the network team.
+
+commands:
+  # Command outputs that will be returned when in test mode
+  "show ip bgp summary": |
+    BGP router identifier 10.0.0.1, local AS number 65000
+    BGP table version is 12345, main routing table version 12345
+    
+    Neighbor        V    AS           MsgRcvd   MsgSent   TblVer  InQ  OutQ  Up/Down   State/PfxRcd
+    192.168.1.1     4    65001        1234      5678      12345   0    0     00:02:15  0
+    192.168.2.1     4    65002        5678      1234      12345   0    0     1d02h     120
+    
+  "show ip bgp neighbors 192.168.1.1": |
+    BGP neighbor is 192.168.1.1, remote AS 65001, external link
+    BGP version 4, remote router ID 192.168.1.1
+    BGP state = Established, up for 00:02:15
+    Last reset 00:03:45, due to BGP Notification sent, hold time expired
+    
+    Message statistics:
+        InQ depth is 0
+        OutQ depth is 0
+                         Sent       Rcvd
+        Opens:              5          5
+        Notifications:      4          0
+        Updates:           10         20
+        Keepalives:       100        110
+        Route Refresh:      0          0
+        Total:            119        135
+    
+  "show log | include BGP": |
+    May 14 09:30:10: %BGP-5-ADJCHANGE: neighbor 192.168.1.1 Down BGP Notification sent
+    May 14 09:32:21: %BGP-5-ADJCHANGE: neighbor 192.168.1.1 Up
+    May 14 09:42:35: %BGP-5-ADJCHANGE: neighbor 192.168.1.1 Down BGP Notification sent
+    May 14 09:44:52: %BGP-5-ADJCHANGE: neighbor 192.168.1.1 Up
+    May 14 09:52:10: %BGP-5-ADJCHANGE: neighbor 192.168.1.1 Down BGP Notification sent
+    May 14 09:55:21: %BGP-5-ADJCHANGE: neighbor 192.168.1.1 Up
+    May 14 10:00:35: %BGP-5-ADJCHANGE: neighbor 192.168.1.1 Down BGP Notification sent
+    May 14 10:02:15: %BGP-5-ADJCHANGE: neighbor 192.168.1.1 Up
+    
+  "show interface GigabitEthernet0/1": |
+    GigabitEthernet0/1 is up, line protocol is up
+    Hardware is AmdP2, address is aabb.cc00.0200
+    Internet address is 192.168.1.2/30
+    MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
+       reliability 255/255, txload 1/255, rxload 1/255
+    Encapsulation ARPA, loopback not set
+    Keepalive set (10 sec)
+    Full-duplex, 1000Mb/s, media type is RJ45
+    Input flow-control is off, output flow-control is unsupported
+    ARP type: ARPA, ARP Timeout 04:00:00
+    Last input 00:00:01, output 00:00:00, output hang never
+    Last clearing of "show interface" counters 1d23h
+    Input queue: 0/75/0/0 (size/max/drops/flushes); Total output drops: 0
+    Queueing strategy: fifo
+    Output queue: 0/40 (size/max)
+    5 minute input rate 1000 bits/sec, 2 packets/sec
+    5 minute output rate 1000 bits/sec, 2 packets/sec
+       1234567 packets input, 1234567890 bytes
+       0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+       0 watchdog, 0 multicast
+       0 input packets with dribble condition detected
+       7654321 packets output, 7654321098 bytes
+       0 output errors, 0 collisions, 1 interface resets
+       0 unknown protocol drops
+       0 babbles, 0 late collision, 0 deferred
+       0 lost carrier, 0 no carrier
+       0 output buffer failures, 0 output buffers swapped out
+    
+  "show ip route bgp": |
+    Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+           D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area 
+           N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+           E1 - OSPF external type 1, E2 - OSPF external type 2
+           i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2
+           ia - IS-IS inter area, * - candidate default, U - per-user static route
+           o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP
+           a - application route
+           + - replicated route, % - next hop override
+    
+    Gateway of last resort is 10.0.0.1 to network 0.0.0.0
+    
+    B     172.16.0.0/16 [20/0] via 192.168.2.1, 1d02h
+    B     172.17.0.0/16 [20/0] via 192.168.2.1, 1d02h
+    B     172.18.0.0/16 [20/0] via 192.168.2.1, 1d02h
+    
+  "ping 192.168.1.1": |
+    Type escape sequence to abort.
+    Sending 5, 100-byte ICMP Echos to 192.168.1.1, timeout is 2 seconds:
+    !!!!!
+    Success rate is 100 percent (5/5), round-trip min/avg/max = 1/2/4 ms

@@ -1,0 +1,93 @@
+# Interface flapping test scenario
+# This test simulates an interface that is constantly flapping
+# It provides both the alert payload and predefined command outputs
+
+alert_payload: |
+  {
+    "alert_id": "INTF-5678",
+    "device": "switch1",
+    "timestamp": "2025-05-15T08:30:00",
+    "severity": "high",
+    "message": "Interface GigabitEthernet1/0/24 is flapping",
+    "details": "Physical interface GigabitEthernet1/0/24 has changed state 8 times in the past hour. Current state: down."
+  }
+
+commands:
+  # Command outputs that will be returned when in test mode
+  "show interfaces GigabitEthernet1/0/24": |
+    GigabitEthernet1/0/24 is down, line protocol is down (notconnect)
+    Hardware is Gigabit Ethernet, address is aabb.cc01.1824 (bia aabb.cc01.1824)
+    Description: Connection to Server-DB1
+    MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
+       reliability 255/255, txload 1/255, rxload 1/255
+    Encapsulation ARPA, loopback not set
+    Keepalive set (10 sec)
+    Auto-duplex, Auto-speed, media type is 10/100/1000BaseTX
+    input flow-control is off, output flow-control is unsupported
+    ARP type: ARPA, ARP Timeout 04:00:00
+    Last input 00:00:45, output 00:00:01, output hang never
+    Last clearing of "show interface" counters 2d13h
+    Input queue: 0/75/0/0 (size/max/drops/flushes); Total output drops: 0
+    Queueing strategy: fifo
+    Output queue: 0/40 (size/max)
+    5 minute input rate 0 bits/sec, 0 packets/sec
+    5 minute output rate 0 bits/sec, 0 packets/sec
+       1543215 packets input, 234568740 bytes, 0 no buffer
+       0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+       0 input packets with dribble condition detected
+       2874635 packets output, 364728453 bytes, 0 underruns
+       0 output errors, 152 collisions, 23 interface resets
+       0 unknown protocol drops
+       0 babbles, 17 late collision, 0 deferred
+       15 lost carrier, 24 no carrier
+       0 output buffer failures, 0 output buffers swapped out
+  
+  "show log | include LINEPROTO": |
+    May 15 07:30:33: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to down
+    May 15 07:35:12: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to up
+    May 15 07:45:47: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to down
+    May 15 07:48:21: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to up
+    May 15 07:55:08: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to down
+    May 15 07:58:36: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to up
+    May 15 08:20:14: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to down
+    May 15 08:24:52: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to up
+    May 15 08:29:33: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to down
+  
+  "show interface counters errors GigabitEthernet1/0/24": |
+    Port        Align-Err    FCS-Err   Xmit-Err    Rcv-Err  UnderSize  OutDiscards
+    Gi1/0/24           0          0          0          0          0            0
+  
+  "show interface status GigabitEthernet1/0/24": |
+    Port      Name               Status       Vlan       Duplex  Speed Type
+    Gi1/0/24  Connection to Serv notconnect   20           auto   auto 10/100/1000BaseTX
+  
+  "show interface capabilities GigabitEthernet1/0/24": |
+    GigabitEthernet1/0/24
+      Model:                 WS-C3750X-48P
+      Type:                  10/100/1000BaseTX
+      Speed:                 10,100,1000,auto
+      Duplex:                half,full,auto
+      Trunk encap. type:     802.1Q
+      Trunk mode:            on,off,desirable,nonegotiate
+      Channel:               yes
+      Broadcast suppression: percentage(0-100)
+      Flowcontrol:           rx-(off,on,desired),tx-(none)
+      Fast Start:            yes
+      QoS scheduling:        rx-(not configurable on per port basis),
+                             tx-(4q3t) (3t: Two configurable values and one fixed.)
+      CoS rewrite:           yes
+      ToS rewrite:           yes
+      UDLD:                  yes
+      Inline power:          yes (Cisco Phone)
+      SPAN:                  source/destination
+      PortSecure:            yes
+      Dot1x:                 yes
+  
+  "show power inline GigabitEthernet1/0/24": |
+    Interface Admin  Oper       Power   Device              Class Max
+                                (Watts)                            
+    --------- ------ ---------- ------- ------------------- ----- ----
+    Gi1/0/24  auto   off        0.0     n/a                 n/a   30.0
+  
+  "show cdp neighbors GigabitEthernet1/0/24": |
+    % CDP is not enabled

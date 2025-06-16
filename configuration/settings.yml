@@ -1,0 +1,9 @@
+adaptive_mode: false
+custom_instructions: ""
+debug_mode: false
+golden_rules: []
+max_steps: 10
+simulation_mode: false
+step_mode: false
+test_mode: false
+test_name: ''

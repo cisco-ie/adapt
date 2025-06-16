@@ -1,0 +1,106 @@
+# BGP Neighbor Down
+# This test simulates BGP Neighbor Down on a NCS 5508
+# Generated on 2025-05-22 15:47:17
+# 
+# Original Input Details:
+# Test Name: BGP Neighbor Down
+# Alert Type: BGP Neighbor Down
+# Device Type: NCS 5508
+# Description: BGP Neighbor 1.2.3.4 is Down
+# Raw Event: %ROUTING-BGP-5-ADJCHANGE : neighbor 1.2.3.4 - Hold timer expired
+# Root Cause: High level of CRC errors on the interface over which the BGP neighbor is reached causing control plane traffic to drop over the link which brings down the BGP neighbor.
+# Modified on 2025-05-22 16:46:10
+
+alert_payload: '{"alert_id":"BGPDOWN-0001","device":"NCS5508-1","timestamp":"2024-06-05T12:34:56Z","severity":"high","message":"BGP
+  neighbor 1.2.3.4 is Down","raw_event":"%ROUTING-BGP-5-ADJCHANGE : neighbor 1.2.3.4
+  - Hold timer expired"}'
+custom_instructions: |-
+  Objective: Identify and resolve the root cause of the BGP neighbor 1.2.3.4 going down due to hold timer expiration.
+
+  General Instructions:
+  - Perform non-disruptive checks first before making changes.
+  - Document each step and its findings.
+  - Ensure you have console or out-of-band access in case the device becomes unstable.
+
+  Remediation Guide:
+
+  1. Check the BGP session status with the neighbor to confirm the hold timer expiration and gather basic session details.
+     - CLI: show bgp neighbors 1.2.3.4 detail
+     - What to look for: BGP state (Idle/Active/Established), Last reset reason, Hold time remaining.
+     - Next steps:
+       * If state is not Established and "Last reset" shows "Hold timer expired", proceed to step 2.
+       * If the neighbor is in another error state, follow BGP-specific recovery (e.g., authentication mismatch).
+
+  2. Identify the local IP address and interface used for the BGP session.
+     - CLI: show bgp neighbors 1.2.3.4 detail
+     - What to look for: the lines starting with "Local host:" (local IP) and "Connection via interface:" (interface name).
+     - Next steps:
+       * Use the identified interface name in step 3 for physical-layer checks.
+
+  3. Verify the physical interface status used for the BGP peering.
+     - CLI: show interfaces GigabitEthernet0/0/0/0
+     - What to look for: interface line protocol (up/up), input/output error counters, CRC errors.
+     - Next steps:
+       * If the interface is down/down or administratively down, troubleshoot the link (cable, switch port configuration).
+       * If the interface is up/up but shows errors, proceed to step 4.
+
+  4. Narrow down to CRC errors to confirm physical-layer faults affecting control-plane traffic.
+     - CLI: show interfaces GigabitEthernet0/0/0/0 | include CRC
+     - What to look for: number of CRC errors incrementing significantly over time.
+     - Next steps:
+       * If CRC errors are high (e.g., >100 in a short interval), replace the fiber/copper cable and/or SFP module.
+       * If CRC errors are zero or minimal, investigate other physical issues (e.g., duplex mismatch, MTU).
+
+  5. After resolving any physical-layer errors, clear counters and re-establish the BGP session:
+     - CLI: clear counters GigabitEthernet0/0/0/0   (resets interface counters)
+     - CLI: clear bgp * 1.2.3.4                  (restarts BGP session to the neighbor)
+
+  6. Re-verify BGP session status:
+     - CLI: show bgp neighbors 1.2.3.4 detail
+     - What to look for: BGP state transitions to Established, no further hold timer expirations.
+expected_rca: The BGP session with neighbor 1.2.3.4 is dropping because control-plane
+  packets (keepalives) are being corrupted at the physical layer. In the "show bgp
+  neighbors 1.2.3.4 detail" output, the "Last reset" reason is "Hold timer expired"
+  and "hold time remaining" shows -1, confirming that keepalives were not received.
+  This same output also identifies the local host IP (10.0.0.1) and the interface
+  (GigabitEthernet0/0/0/0). The interface remains up/up but exhibits a high count
+  of CRC errors (450) in the "show interfaces" output. These CRC errors cause FCS
+  validation failures, silently dropping BGP keepalive packets before they reach the
+  control plane. Replacing the faulty cable or SFP module clears the CRC errors and
+  allows the BGP session to stay established.
+commands:
+  show bgp neighbors 1.2.3.4 detail: |-
+    Tue Sep 14 12:34:56.789 UTC
+    BGP neighbor is 1.2.3.4, remote AS 65001, local AS 65000, internal link
+      BGP version 4, primary path hash function crc32
+      Rcvd 1234 messages, Sent 1234 messages
+      Hold time is 180, keepalive interval is 60 seconds
+      Configured hold time is 180, keepalive is 60
+      Last read 00:10:05, Last write 00:10:05, hold time remaining -1
+      Last reset 00:10:05, reason: Hold timer expired
+      Local host: 10.0.0.1
+      Local port: 179, Foreign port: 179
+      Connection via interface: GigabitEthernet0/0/0/0
+      Neighbor capabilities:
+        Graceful Restart: advertised and received (Restart time 120 seconds)
+        Route Refresh: advertised and received
+      Message statistics:
+        Open: sent 1, received 1
+        Notification: sent 0, received 1
+        Update: sent 0, received 1233
+  show interfaces GigabitEthernet0/0/0/0: |-
+    GigabitEthernet0/0/0/0 is up, line protocol is up
+      Hardware is CSR v2, address is a1b2.c3d4.e5f6 (bia a1b2.c3d4.e5f6)
+      MTU 1500 bytes, BW 1000000 Kbit
+      reliability 255/255, txload 1/255, rxload 1/255
+      Encapsulation ARPA, loopback not set
+      Keepalive set (10 sec)
+      30 second input rate 10000 bits/sec, 10 packets/sec
+      30 second output rate 8000 bits/sec, 8 packets/sec
+         9876543 packets input, 1234 bytes, 450 CRC, 10 frame, 0 overrun, 0 ignored
+         87654321 packets output, 4567890 bytes, 0 underrun
+  show interfaces GigabitEthernet0/0/0/0 | include CRC: '     9876543 packets input,
+    1234 bytes, 450 CRC, 10 frame, 0 overrun, 0 ignored'
+  clear counters GigabitEthernet0/0/0/0: Counters on interface GigabitEthernet0/0/0/0
+    cleared
+  clear bgp * 1.2.3.4: BGP neighbor 1.2.3.4 reset

@@ -1,0 +1,19 @@
+# CODEOWNERS file defines individuals or teams responsible for code in the repository
+
+# Default owners for everything in the repo
+* @jashoema
+
+# Specific owners for different parts of the codebase
+/agents/ @jashoema
+/configuration/ @jashoema
+/utils/ @jashoema
+/streamlit_app.py @jashoema
+/graph.py @jashoema
+
+# Ownership for documentation
+/README.md @jashoema
+/CHANGELOG.md @jashoema
+/docs/ @jashoema
+
+# Example of team ownership
+# /.github/ @jashoema/admins

@@ -1,0 +1,3 @@
+[server]
+# Enable serving files from a static directory in the app
+enableStaticServing = true

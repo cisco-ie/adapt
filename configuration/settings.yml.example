@@ -1,0 +1,33 @@
+# Default application settings
+# This file configures default values for various application settings
+
+# Debug mode - enables additional logging and debug information
+debug_mode: false
+
+# Simulation mode - when true, commands are not executed on actual devices
+# instead, the LLM simulates command outputs
+simulation_mode: true
+
+# Test mode - when true, uses predefined test data from YAML files instead of real device interactions
+test_mode: false
+
+# Test name - specifies which test data file to use from the tests/ directory (without the .yml extension)
+test_name: ""
+
+# Step mode - when true, requires approval between workflow steps
+step_mode: false
+
+# Maximum number of steps to execute in an action plan before escalating
+max_steps: 15
+
+# Adaptive mode - when true, allows the Action Analyzer to recommend new actions based on results
+adaptive_mode: true
+
+# Custom instructions - specific remediation guidelines for known issues (markdown format)
+custom_instructions: ""
+
+# Golden rules - global rules that all agents must follow during operation
+golden_rules:
+  - "rule1"
+  - "rule2"
+  - "rule3"

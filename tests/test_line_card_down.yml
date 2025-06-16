@@ -1,0 +1,79 @@
+# line card down
+# This test simulates line card down on a Nexus 9508
+# Generated on 2025-05-21 16:07:15
+alert_payload: |-
+  {
+    "alert_id": "LINECARD-0001",
+    "device": "nexus9508-01",
+    "timestamp": "2024-06-15T14:22:40",
+    "severity": "high",
+    "message": "Line card in slot 4 is offline",
+    "details": "Line card module in slot 4 is not powered on due to insufficient fabric modules online."
+  }
+custom_instructions: |-
+  General instructions:
+    - Start by verifying the physical and logical status of installed modules.
+    - Confirm that all required fabric cards are present and operational.
+    - Check for any active faults or log entries related to module provisioning failures.
+
+  Troubleshooting instructions:
+    1. Check module inventory and status by running 'show module'
+    2. Review active fault entries with 'show fault'
+    3. Verify power status of power supplies using 'show environment power'
+    4. Check details of the first fabric card with 'show module 7 detail'
+    5. Check details of the second fabric card with 'show module 8 detail'
+    6. Search system logs for fabric-related errors using 'show logging | include FABRIC'
+expected_rca: "The root cause of the line card in slot 4 being offline is that only\
+  \ one fabric module is installed and operational (in slot 7) while the second fabric\
+  \ module (slot 8) is missing. The Nexus 9508 chassis requires two fabric modules\
+  \ to establish redundant backplane connectivity for line cards. With only one fabric\
+  \ path active, the chassis automatically disables dependent line cards to prevent\
+  \ data-plane instability.\n\nEvidence supporting this conclusion:\n\n- The output\
+  \ of 'show module' shows slot 7 (Fabric Module) as OK, slot 8 as absent, and line\
+  \ card slot 4 in an \"offline\" state.\n- 'show fault' lists a critical PLATFORM-3-FABRIC_ERROR\
+  \ fault indicating line card slot 4 is offline due to insufficient fabric modules.\n\
+  - Detailed output for slot 7 confirms the fabric module is online and fully operational\
+  \ (state: active).\n- Detailed output for slot 8 indicates the module is not present\
+  \ in the chassis.\n- System logs include a PLATFORM-3-FABRIC_ERROR message: \"Insufficient\
+  \ fabric modules to activate line card in slot 4.\" \n\nA network engineer would\
+  \ conclude that installing or replacing the missing fabric module in slot 8 will\
+  \ restore the required dual fabric paths and allow line card slot 4 to power on\
+  \ and function normally."
+commands:
+  show module: |-
+    Mod Slot  Module-Type           Model              Status
+    --- ------- --------------------- ------------------ -------
+     1   1       Supervisor Module     N9K-SUP1          ok
+     2   2       Supervisor Module     N9K-SUP2          ok
+     3   3       Fabric Module         N9K-FM-2          ok
+     4   4       Linecard-48           N9K-M1072PQ       offline
+     5   5       Linecard-48           N9K-M1072PQ       ok
+     6   6       Linecard-48           N9K-M1072PQ       ok
+     7   7       Fabric Module         N9K-FM-2          ok
+     8   8       Fabric Module         Not Present       absent
+
+    Note: Line card in slot 4 remains offline due to insufficient fabric modules.
+  show fault: |-
+    ID   SEVERITY    TIMESTAMP              TYPE                           DESCRIPTION
+    --   --------    ---------              ----                           -----------
+    1001 Critical    Jun 15 14:22:40 2024   PLATFORM-3-FABRIC_ERROR        Line card in slot 4 offline due to insufficient fabric modules online.
+    1002 Major       Jun 15 14:20:00 2024   POWER-2-PSU_FAILED             Power supply 1 operating normally.
+
+    Total faults: 2 (1 active, 1 historical)
+  show environment power: |-
+    Power Supply Status
+    -------------------
+    PSU 1: Present, Enabled, Status: ok, Output: 1020 W
+    PSU 2: Present, Enabled, Status: ok, Output: 1020 W
+
+    All power supplies are functioning within normal parameters.
+  show module 7 detail: "Mod  Slot  Module-Type     Model      Status    State   \
+    \       Serial       \n---  ----  -------------   --------   -------   -------------\
+    \  ------------ \n3    7     Fabric Module   N9K-FM-2   ok        active     \
+    \    F7ABCD1234\n\n    Description: Fabric module for backplane connectivity\n\
+    \    Temperature: 40 C\n    Fabric status: Up, no errors detected\n"
+  show module 8 detail: |
+    %Error: Module 8 is not installed or recognized in this chassis.
+  show logging | include FABRIC: |
+    Jun 15 14:22:40 nexus9508-01 %PLATFORM-3-FABRIC_ERROR: Insufficient fabric modules to activate line card in slot 4.
+    Jun 15 14:22:35 nexus9508-01 %SYS-5-CONFIG_I: System configuration changed.
