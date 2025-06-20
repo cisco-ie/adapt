@@ -2,6 +2,29 @@
 
 AI-Driven Action Planner & Troubleshooter (ADAPT)
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Setup](#setup)
+  - [Prerequisites](#prerequisites)
+  - [Option 1: Python Native with Virtual Environment](#option-1-python-native-with-virtual-environment)
+  - [Option 2: Docker Compose](#option-2-docker-compose)
+- [Running the Application](#running-the-application)
+  - [Python Native](#python-native)
+  - [Docker](#docker)
+  - [Alert Queue API](#alert-queue-api)
+- [Project Structure](#project-structure)
+- [Features](#features)
+- [Configuration](#configuration)
+  - [Test Scenarios](#test-scenarios)
+  - [Settings](#settings)
+  - [Network Device Inventory](#network-device-inventory)
+- [Observability](#observability)
+- [Supported AI Models](#supported-ai-models)
+- [Roadmap and Known Issues](#roadmap-and-known-issues)
+- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
+
 ## Overview
 
 ADAPT is an autonomous network troubleshooting system that uses AI-driven agents to diagnose and solve network issues. The system utilizes a multi-agent workflow powered by LangGraph and PydanticAI to provide intelligent, step-by-step troubleshooting of network problems.
@@ -50,7 +73,6 @@ We've provided a recorded walkthrough of the setup process and execution with a 
 5. Update the `.env` file with your settings:
    ```
    # API settings
-   BASE_URL=https://api.openai.com/v1
    OPENAI_API_KEY=your_api_key_here
    LOGFIRE_TOKEN=your_logfire_token_here (optional)
    
@@ -75,8 +97,7 @@ We've provided a recorded walkthrough of the setup process and execution with a 
      ```
      copy .env.example .env
      ```
-   - Edit the `.env` file with your configuration values:
-     ```
+   - Edit the `.env` file with your configuration values:     ```
      OPENAI_API_KEY=your_api_key_here
      ```
      - Configure any device hostname, type, and port settings
@@ -231,6 +252,26 @@ ADAPT optionally integrates with Logfire for observability and API usage trackin
    ```
    LOGFIRE_TOKEN=your_logfire_token_here
    ```
+
+## Supported AI Models
+
+By default, ADAPT uses OpenAI models for its AI agents. However, any model supported by PydanticAI can be used by updating the corresponding environment variables in your `.env` file:
+
+```
+# API keys for your chosen provider
+OPENAI_API_KEY=your_api_key_here
+# For providers other than OpenAI, set the corresponding environment variable:
+# OPENROUTER_API_KEY=your_openrouter_api_key
+# ANTHROPIC_API_KEY=your_anthropic_api_key
+# OLLAMA_API_KEY=your_ollama_api_key
+
+# Model configurations using <provider>:<model> format
+REASONER_MODEL=openai:o4-mini          # For complex reasoning (action_planner, action_analyzer)
+LARGE_MODEL=openai:gpt-4.1             # For standard operations (action_executor, results_summary)
+SMALL_MODEL=openai:gpt-4.1-mini        # For simpler operations (fault_summary, hello_world)
+```
+
+Visit the [PydanticAI Models documentation](https://ai.pydantic.dev/models/) for a comprehensive list of supported models and providers, along with configuration details. Examples of supported model formats include `openai:gpt-4o`, `anthropic:claude-3-opus-20240229`, or `openrouter:google/gemini-2.5-pro-preview`.
 
 ## Roadmap and Known Issues
 

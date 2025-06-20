@@ -1,6 +1,7 @@
 import os
 from typing import List
 import json
+from dotenv import load_dotenv
 
 import logfire
 from pydantic_ai import Agent, RunContext
@@ -8,13 +9,16 @@ from pydantic_ai import Agent, RunContext
 from .agent_prompts import SYSTEM_PROMPT
 from ..models import FaultSummary, TroubleshootingStep, ActionPlannerDependencies
 
+# Load environment variables from .env file
+load_dotenv()
+
 # Logfire instrumentation is enabled if API key is set
 logfire_api_key = os.getenv('LOGFIRE_KEY')
 logfire.configure(send_to_logfire='if-token-present')
     
 # Create the agent with type-safe output and instructions
 action_planner = Agent(
-    model="openai:o4-mini",
+    model=os.getenv('REASONER_MODEL', 'openai:o4-mini'),
     system_prompt=SYSTEM_PROMPT,
     output_type=List[TroubleshootingStep],
     deps_type=ActionPlannerDependencies,

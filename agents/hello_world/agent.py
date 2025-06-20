@@ -12,7 +12,7 @@ load_dotenv()
 
 # Initialize the Hello World agent
 agent = Agent(
-    model='openai:gpt-4.1-mini',
+    model=os.getenv('SMALL_MODEL', 'openai:gpt-4.1-mini'),
     system_prompt=HELLO_WORLD_SYSTEM_PROMPT,
     deps_type=HelloWorldDependencies,
     instrument=True,

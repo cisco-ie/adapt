@@ -13,7 +13,7 @@ load_dotenv()
 
 # Initialize the Result Summary agent with structured output
 agent = Agent(
-    model='openai:gpt-4.1',
+    model=os.getenv('LARGE_MODEL', 'openai:gpt-4.1'),
     system_prompt=RESULT_SUMMARY_SYSTEM_PROMPT,
     output_type=ResultSummary,
     deps_type=ResultSummaryDependencies,

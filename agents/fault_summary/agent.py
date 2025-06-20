@@ -12,7 +12,7 @@ load_dotenv()
 
 # Initialize the Fault Summary agent with structured output
 agent = Agent(
-    model='openai:gpt-4.1-mini',
+    model=os.getenv('SMALL_MODEL', 'openai:gpt-4.1-mini'),
     system_prompt=FAULT_SUMMARY_SYSTEM_PROMPT,
     output_type=FaultSummary,
     deps_type=FaultSummaryDependencies,

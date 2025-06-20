@@ -1,6 +1,8 @@
 from __future__ import annotations as _annotations
 
+import os
 import json
+from dotenv import load_dotenv
 from pydantic_ai import Agent, RunContext
 
 from .agent_prompts import ACTION_ANALYZER_SYSTEM_PROMPT
@@ -11,10 +13,13 @@ from ..models import (
     FaultSummary,
     ActionAnalyzerDependencies
 )
+
+# Load environment variables from .env file
+load_dotenv()
     
 # The core agent definition
 action_analyzer = Agent(
-    model='openai:o4-mini',  # or use your preferred model
+    model=os.getenv('REASONER_MODEL', 'openai:o4-mini'),
     output_type=ActionAnalysisReport,
     system_prompt=ACTION_ANALYZER_SYSTEM_PROMPT,
     name='action_analyzer',

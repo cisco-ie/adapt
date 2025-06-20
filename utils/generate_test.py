@@ -218,7 +218,7 @@ If the answer to any of these is "no", revise the JSON output accordingly.
 
 # Initialize the test generator agent
 test_generator_agent = Agent(
-    model='openai:o4-mini',
+    model=os.getenv('REASONER_MODEL', 'openai:o4-mini'),
     system_prompt=SYSTEM_PROMPT,
     output_type=TestJSON,
     retries=2,
