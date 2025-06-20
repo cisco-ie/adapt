@@ -4,16 +4,6 @@
 # Note: Hostnames (e.g. xr_device_hostname) are case sensitive and must match the hostname generated
 # by the Fault Summary agent.
 devices:
-  c8kv-sandbox:
-    hostname: "devnetsandboxiosxec8k.cisco.com"
-    device_type: "cisco_xe"
-    username: "jashoema"  
-    password: "2_-oOXWs9RJ8kx"       
-    optional_args:
-      port: 22
-      transport: "ssh"
-      timeout: 60
-      # secret: "secret"  # Optional, if device requires enable mode
 
   xr_device_hostname:
     hostname: "1.1.1.1" # Device hostname or IP address (must resolve via DNS if hostname supplied)

@@ -26,10 +26,14 @@ logfire.instrument_openai()
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("action_executor.agent")
+
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
     
 # Main Agent
 action_executor = Agent(
-    "openai:gpt-4.1",
+    os.getenv('LARGE_MODEL', 'openai:gpt-4.1'),
     system_prompt=SYSTEM_PROMPT,
     tools=[execute_cli_commands, execute_cli_config],
     deps_type=ActionExecutorDeps,
