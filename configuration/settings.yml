@@ -1,7 +1,30 @@
 adaptive_mode: false
-custom_instructions: ""
+custom_instructions: |-
+  Objective:
+  Identify and remediate the BGP prefix anomaly where the number of prefixes received from a neighbor dropped unexpectedly.
+
+  Remediation Guide:
+
+  1. Check current BGP prefix count for the affected neighbor to make sure it is still seeing the anomalous count for received prefixes.  Use the command "show bgp neighbor {{ neighbor-ip }}"
+
+  2. Review system logs from the day of the anomaly to see if any configuration changes were made around that time.
+
+  3. If a configuration change was made, check to config commit history to look at the contents of the configuration change
+
+  4. If the contents of the configuration change were related to the policy for the affected neighbor, we should rollback this configuration using the config rollback feature
+
+  5. After the config rollback, we should do a soft clear of the BGP neighbor and then validate that the problem no longer exists.  Use "clear bgp all all {{ neighbor-ip }} soft in" for IOS XR devices in order to do this.
+
+  6. If this doesn't resolve the issue, explore other potential root causes.
+
 debug_mode: false
-golden_rules: []
+golden_rules:
+- '**IMPORTANT**: Never set action_type of "config" for a "rollback" command.  It should always be action_type = "exec"'
+- When creating an action plan, do not use "| include" or similar "|" capabilities for commands because they usually don't work correctly
+- If running "show logging", always run "show logging  last 100" to get the last 100 events instead of retrieving all events
+- Never use "admin" commands in IOS XR
+- The proper command for checking for changes in a config commit is "show configuration commit changes {{ commit-id }}"
+- The proper command for a config rollback in IOS XR is "rollback configuration {{ commit-id }}"
 max_steps: 10
 simulation_mode: false
 step_mode: false
