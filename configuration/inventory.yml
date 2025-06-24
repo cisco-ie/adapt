@@ -7,7 +7,7 @@ devices:
 
   XR-43:
     hostname: "198.18.128.43"
-    device_type: "iosxr"  # NAPALM driver type
+    device_type: "cisco_xr"  # Netmiko driver type
     username: "cisco"  # Default from .env if not specified
     password: "cisco"  # Default from .env if not specified
     optional_args:
@@ -17,7 +17,7 @@ devices:
 
   XR-44:
     hostname: "198.18.128.44"
-    device_type: "iosxr"
+    device_type: "cisco_xr"
     username: "cisco"  
     password: "cisco"       
     optional_args:
@@ -27,7 +27,7 @@ devices:
 
   XE-31:
     hostname: "198.18.128.31"
-    device_type: "ios"
+    device_type: "cisco_xe"
     username: "cisco"  
     password: "cisco123" 
     optional_args:
@@ -37,7 +37,7 @@ devices:
 
   XE-32:
     hostname: "198.18.128.32"
-    device_type: "nxos"
+    device_type: "cisco_xe"
     username: "cisco"  
     password: "cisco123"  
     optional_args:
