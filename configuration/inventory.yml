@@ -5,6 +5,46 @@
 # by the Fault Summary agent.
 devices:
 
+  XR-43:
+    hostname: "198.18.128.43"
+    device_type: "iosxr"  # NAPALM driver type
+    username: "cisco"  # Default from .env if not specified
+    password: "cisco"  # Default from .env if not specified
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 60
+
+  XR-44:
+    hostname: "198.18.128.44"
+    device_type: "iosxr"
+    username: "cisco"  
+    password: "cisco"       
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 60
+
+  XE-31:
+    hostname: "198.18.128.31"
+    device_type: "ios"
+    username: "cisco"  
+    password: "cisco123" 
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 30
+
+  XE-32:
+    hostname: "198.18.128.32"
+    device_type: "nxos"
+    username: "cisco"  
+    password: "cisco123"  
+    optional_args:
+      port: 22
+      transport: "ssh"
+      timeout: 30
+
   xr_device_hostname:
     hostname: "1.1.1.1" # Device hostname or IP address (must resolve via DNS if hostname supplied)
     device_type: "cisco_xr"  # Netmiko driver type
