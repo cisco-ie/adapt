@@ -42,6 +42,7 @@ The workflow consists of the following AI agents:
 ### 🎯START HERE🎯
 We've provided a recorded walkthrough of the setup process and execution with a live device to help you get started quickly.
 - [Getting Started with ADAPT](https://app.vidcast.io/share/ab857ff1-73ff-4285-923e-7bf266172b93)
+- [ADAPT Demo for Network Anomaly Troubleshooting](https://app.vidcast.io/share/a9f43543-c4ff-40aa-821a-6c4721bbe1d3)
 
 ### Prerequisites
 
